@@ -3,6 +3,14 @@
 #include <sys/stat.h>
 #include "includes/asyncio.h"
 
+namespace syslib 
+{
+    /*
+        global thread pool, destruct when main exits
+    */
+    thread_pool pool;
+}
+
 namespace asyncio 
 {
     std::future<std::string> read(const std::string& fileName) 

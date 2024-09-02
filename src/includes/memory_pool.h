@@ -8,7 +8,7 @@ public:
 
     memory_pool(size_t block_size, size_t num_blocks)
     {
-        pool_start = (void*)malloc(block_size * block_size);
+        pool_start = (void*)malloc(num_blocks * block_size);
 
         if (pool_start == nullptr)
         {

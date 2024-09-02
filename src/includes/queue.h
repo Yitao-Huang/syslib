@@ -6,7 +6,7 @@ class spsc_queue {
 public:
     spsc_queue(size_t size): size_(size), head_(0), tail_(0), buffer_(size) {}
 
-    bool enqueue(const T& data) {
+    bool enqueue(T&& data) {
         int curr_head = head_.load(std::memory_order_relaxed);
         int next_head = next(curr_head);
 
@@ -14,7 +14,7 @@ public:
             return false;
         }
 
-        buffer_[curr_head] = data;
+        buffer_[curr_head] = std::move(data);
         head_.store(next_head, std::memory_order_release);
         return true;
     }
@@ -44,52 +44,50 @@ private:
 
 template<typename T>
 class mpsc_queue {
-private:
-    struct node {
-        T data;
-        std::atomic<node*> next;
-
-        node() : next(nullptr) {}
-        node(const T& value) : data(value), next(nullptr) {}
-        node(T&& value) : data(std::move(value)), next(nullptr) {}
-    };
-
-    std::atomic<node*> head;
-    node* tail;
-
 public:
-    mpsc_queue() : head(new node()), tail(head.load()) {}
+    explicit mpsc_queue(size_t capacity) 
+        : buffer_(capacity), capacity_(capacity), head_(0), tail_(0) {}
 
-    ~mpsc_queue() {
-        while (node* old_head = head.load()) {
-            head.store(old_head->next);
-            delete old_head;
+    bool enqueue(const T& value) {
+        size_t current_head = head_.load(std::memory_order_relaxed);
+        size_t next_head = (current_head + 1) % capacity_;
+
+        if (next_head != tail_) {  // Check if the queue is full
+            buffer_[current_head] = value;
+            head_.store(next_head, std::memory_order_release);
+            return true;
         }
+        return false;  // Queue is full
     }
 
-    void enqueue(const T& value) {
-        node* new_node = new node(value);
-        node* old_head = head.exchange(new_node);
-        old_head->next.store(new_node, std::memory_order_release);
-    }
+    bool enqueue(T&& value) {
+        size_t current_head = head_.load(std::memory_order_relaxed);
+        size_t next_head = (current_head + 1) % capacity_;
 
-    void enqueue(T&& value) {
-        node* new_node = new node(std::move(value));
-        node* old_head = head.exchange(new_node);
-        old_head->next.store(new_node, std::memory_order_release);
+        if (next_head != tail_.load(std::memory_order_acquire)) {  // Check if the queue is full
+            buffer_[current_head] = std::move(value);
+            head_.store(next_head, std::memory_order_release);
+            return true;
+        }
+        return false;  // Queue is full
     }
 
     bool dequeue(T& result) {
-        node* old_tail = tail;
-        node* next = old_tail->next.load(std::memory_order_acquire);
-        if (next) {
-            result = std::move(next->data);
-            tail = next;
-            delete old_tail;
-            return true;
+        size_t current_tail = tail_.load(std::memory_order_relaxed); 
+        if (current_tail == head_.load(std::memory_order_acquire)) {
+            return false;  // Queue is empty
         }
-        return false;
+
+        result = std::move(buffer_[current_tail]);
+        tail_.store((current_tail + 1) % capacity_, std::memory_order_release); // Use atomic store for tail
+        return true;
     }
+
+private:
+    std::vector<T> buffer_;
+    const size_t capacity_;
+    std::atomic<size_t> head_;
+    std::atomic<size_t> tail_;
 };
 
 
@@ -103,7 +101,7 @@ public:
         }
     }
 
-    bool enqueue(const T& item)
+    bool enqueue(T&& data)
     {
         size_t head = head_.load(std::memory_order_relaxed);
         for (;;) {
@@ -113,7 +111,7 @@ public:
             if (diff == 0) 
             {
                 if (head_.compare_exchange_weak(head, head + 1, std::memory_order_relaxed)) {
-                    cell.value = item;
+                    cell.value = std::move(data);
                     cell.sequence.store(head + 1, std::memory_order_release);
                     return true;
                 }

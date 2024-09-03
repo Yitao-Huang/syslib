@@ -105,14 +105,14 @@ public:
     {
         size_t head = head_.load(std::memory_order_relaxed);
         for (;;) {
-            Cell& cell = buffer_[head % size_];
-            size_t seq = cell.sequence.load(std::memory_order_acquire);
+            cell& cell_ = buffer_[head % size_];
+            size_t seq = cell_.sequence.load(std::memory_order_acquire);
             intptr_t diff = (intptr_t)seq - (intptr_t)head;
             if (diff == 0) 
             {
                 if (head_.compare_exchange_weak(head, head + 1, std::memory_order_relaxed)) {
-                    cell.value = std::move(data);
-                    cell.sequence.store(head + 1, std::memory_order_release);
+                    cell_.value = std::move(data);
+                    cell_.sequence.store(head + 1, std::memory_order_release);
                     return true;
                 }
             } 
@@ -131,15 +131,15 @@ public:
         size_t tail = tail_.load(std::memory_order_relaxed);
         for (;;) 
         {
-            Cell& cell = buffer_[tail % size_];
-            size_t seq = cell.sequence.load(std::memory_order_acquire);
+            cell& cell_ = buffer_[tail % size_];
+            size_t seq = cell_.sequence.load(std::memory_order_acquire);
             intptr_t diff = (intptr_t)seq - (intptr_t)(tail + 1);
             if (diff == 0) 
             {
                 if (tail_.compare_exchange_weak(tail, tail + 1, std::memory_order_relaxed)) 
                 {
-                    data = cell.value;
-                    cell.sequence.store(tail + size_, std::memory_order_release);
+                    data = cell_.value;
+                    cell_.sequence.store(tail + size_, std::memory_order_release);
                     return true;
                 }
             } 
@@ -155,14 +155,14 @@ public:
     }
 
 private:
-    struct Cell 
+    struct cell 
     {
         std::atomic<size_t> sequence;
         T value;
     };
 
     const size_t size_;
-    std::vector<Cell> buffer_;
+    std::vector<cell> buffer_;
     std::atomic<size_t> head_;
     std::atomic<size_t> tail_;
 };

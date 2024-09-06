@@ -1,16 +1,19 @@
 #include <iostream>
 #include "includes/asyncio.h"
+#include "includes/logger.h"
 
 int main() {
-    try {
+    try 
+    {
         auto read_res = asyncio::read("../tests/example.txt");
         auto write_res = asyncio::write("../tests/output.txt", "Hello, IO world!");
-
-        std::cout << "Read content: " << read_res.get() << std::endl;
+        LOG(LogLevel::INFO, "Read content: %s", read_res.get().c_str());
         write_res.get();
-        std::cout << "Write Done" << std::endl;
-    } catch (const std::exception& ex) {
-        std::cerr << "I/O operation failed: " << ex.what() << std::endl;
+        LOG(LogLevel::INFO, "Write done");
+    } 
+    catch (const std::exception& ex) 
+    {
+        LOG(LogLevel::ERROR, "I/O operation failed: %s", ex.what());
     }
 
     return 0;

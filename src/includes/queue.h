@@ -45,31 +45,28 @@ private:
 template<typename T>
 class mpsc_queue {
 public:
-    explicit mpsc_queue(size_t capacity) 
+    mpsc_queue(size_t capacity) 
         : buffer_(capacity), capacity_(capacity), head_(0), tail_(0) {}
-
-    bool enqueue(const T& value) {
-        size_t current_head = head_.load(std::memory_order_relaxed);
-        size_t next_head = (current_head + 1) % capacity_;
-
-        if (next_head != tail_) {  // Check if the queue is full
-            buffer_[current_head] = value;
-            head_.store(next_head, std::memory_order_release);
-            return true;
-        }
-        return false;  // Queue is full
-    }
 
     bool enqueue(T&& value) {
         size_t current_head = head_.load(std::memory_order_relaxed);
         size_t next_head = (current_head + 1) % capacity_;
 
-        if (next_head != tail_.load(std::memory_order_acquire)) {  // Check if the queue is full
-            buffer_[current_head] = std::move(value);
-            head_.store(next_head, std::memory_order_release);
-            return true;
+        // Atomically claim a slot for writing
+        while (true) {
+            if (next_head == tail_.load(std::memory_order_acquire)) {
+                return false;  // Queue is full
+            }
+
+            // Try to update the head atomically
+            if (head_.compare_exchange_weak(current_head, next_head, std::memory_order_acquire, std::memory_order_relaxed)) {
+                // Successfully claimed the slot, now safe to write
+                buffer_[current_head] = std::move(value);
+                break;
+            }
+            next_head = (current_head + 1) % capacity_;
         }
-        return false;  // Queue is full
+        return true;
     }
 
     bool dequeue(T& result) {

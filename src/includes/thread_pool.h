@@ -77,3 +77,11 @@ private:
     std::condition_variable cv;
     bool stop;
 };
+
+namespace syslib 
+{
+    /*
+        global thread pool, destruct when main exits
+    */
+    static thread_pool pool;
+}

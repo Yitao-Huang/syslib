@@ -2,6 +2,8 @@
 #include <atomic>
 #include <cstdio>
 #include <cstdarg>
+#include <chrono>
+#include <ctime>
 #include <future>
 #include <string>
 #include "on_demand.h"
@@ -20,7 +22,7 @@ enum class LogLevel : uint8_t
     ERROR 
 };
 
-static const char* to_string(LogLevel level) 
+inline const char* to_string(LogLevel level) 
 {
     switch (level) {
         case LogLevel::INFO: return "INFO";
@@ -30,9 +32,17 @@ static const char* to_string(LogLevel level)
     }
 }
 
+inline std::string get_current_timestamp() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t current_time = std::chrono::system_clock::to_time_t(now);
+    std::string time_str = std::ctime(&current_time);
+    time_str.pop_back();
+    return time_str;
+}
+
 // Macro to log with severity and formatted message
 #define LOG(level, fmt, ...) \
-    printf("[%s] " fmt "\n", to_string(level), ##__VA_ARGS__);
+    printf("%s [%s] " fmt "\n", get_current_timestamp().c_str(), to_string(level), ##__VA_ARGS__);
 
 class async_logger
 {
@@ -80,7 +90,7 @@ public:
         char format_string[MAX_LOG_MESSAGE_LENGTH];
         va_list args;
         va_start(args, fmt);
-        int len = snprintf(format_string, MAX_LOG_MESSAGE_LENGTH, "[%s] ", severity_level);
+        int len = snprintf(format_string, MAX_LOG_MESSAGE_LENGTH, "%s [%s] ", get_current_timestamp().c_str(), severity_level);
         len += vsnprintf(format_string + len, MAX_LOG_MESSAGE_LENGTH - len, fmt, args);
         va_end(args);
 

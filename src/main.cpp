@@ -1,5 +1,6 @@
 #include "includes/asyncio.h"
 #include "includes/logger.h"
+#include <thread>
 
 int main() {
     try 
@@ -14,6 +15,8 @@ int main() {
     {
         LOG(LogLevel::ERROR, "I/O operation failed: %s", ex.what())
     }
+
+    ASYNCLOG(LogLevel::INFO, "Main exits: %d", 0)
 
     return 0;
 }

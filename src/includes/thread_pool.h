@@ -9,12 +9,14 @@
 #include <stdexcept>
 #include <memory>
 
+#define NUM_THREADS 32
+
 class thread_pool
 {
 public:
     thread_pool(): stop(false)
     {
-        for (size_t i = 0; i < std::thread::hardware_concurrency(); i++)
+        for (size_t i = 0; i < NUM_THREADS; i++)
         {
             workers.emplace_back(
                     [this](){
@@ -26,11 +28,11 @@ public:
                                 this->cv.wait(ul, [this](){
                                     return !this->tasks.empty() || this->stop;
                                 });
-                                if(this->stop)
+                                if (this->stop && this->tasks.empty())
                                     return;
                                 task = std::move(this->tasks.front());
                                 this->tasks.pop();
-                            } 
+                            }
                             task();
                         }
                     }

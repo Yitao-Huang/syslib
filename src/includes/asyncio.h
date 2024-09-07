@@ -8,25 +8,25 @@
 
 namespace asyncio 
 {
-    static std::future<std::string> read(const std::string& fileName) 
+    static std::future<std::string> read(const std::string& file_name) 
     {
-        return syslib::pool.enqueue([](const std::string& fileName) 
+        return syslib::pool.enqueue([](const std::string& file_name) 
         {
-            int fd = open(fileName.c_str(), O_RDONLY);
+            int fd = open(file_name.c_str(), O_RDONLY);
             if (fd == -1) 
             {
                 throw std::runtime_error("file not found");
             }
 
-            struct stat fileStat;
-            if (fstat(fd, &fileStat) == -1) 
+            struct stat file_stat;
+            if (fstat(fd, &file_stat) == -1) 
             {
                 close(fd);
                 throw std::runtime_error("unable to get file size");
             }
 
-            std::string content(fileStat.st_size, '\0');
-            if (::read(fd, &content[0], fileStat.st_size) == -1) 
+            std::string content(file_stat.st_size, '\0');
+            if (::read(fd, &content[0], file_stat.st_size) == -1) 
             {
                 close(fd);
                 throw std::runtime_error("read failed");
@@ -34,14 +34,14 @@ namespace asyncio
 
             close(fd);
             return content;
-        }, fileName);
+        }, file_name);
     }
 
-    static std::future<bool> write(const std::string& fileName, const std::string& content) 
+    static std::future<bool> write(const std::string& file_name, const std::string& content) 
     {
-        return syslib::pool.enqueue([](const std::string& fileName, const std::string& content) 
+        return syslib::pool.enqueue([](const std::string& file_name, const std::string& content) 
         {
-            int fd = open(fileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            int fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (fd == -1)
             {
                 throw std::runtime_error("unable to open file for writing");
@@ -55,6 +55,6 @@ namespace asyncio
 
             close(fd);
             return true;
-        }, fileName, content);
+        }, file_name, content);
     }
 }

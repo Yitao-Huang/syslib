@@ -32,17 +32,17 @@ inline const char* to_string(LogLevel level)
     }
 }
 
-inline std::string get_current_timestamp() {
+inline const char* get_current_timestamp() {
     auto now = std::chrono::system_clock::now();
     std::time_t current_time = std::chrono::system_clock::to_time_t(now);
-    std::string time_str = std::ctime(&current_time);
-    time_str.pop_back();
+    char* time_str = std::ctime(&current_time);
+    time_str[strlen(time_str)-1] = '\0';
     return time_str;
 }
 
 // Macro to log with severity and formatted message
 #define LOG(level, fmt, ...) \
-    printf("%s [%s] " fmt "\n", get_current_timestamp().c_str(), to_string(level), ##__VA_ARGS__);
+    printf("%s [%s] " fmt "\n", get_current_timestamp(), to_string(level), ##__VA_ARGS__);
 
 class async_logger
 {
@@ -90,7 +90,7 @@ public:
         char format_string[MAX_LOG_MESSAGE_LENGTH];
         va_list args;
         va_start(args, fmt);
-        int len = snprintf(format_string, MAX_LOG_MESSAGE_LENGTH, "%s [%s] ", get_current_timestamp().c_str(), severity_level);
+        int len = snprintf(format_string, MAX_LOG_MESSAGE_LENGTH, "%s [%s] ", get_current_timestamp(), severity_level);
         len += vsnprintf(format_string + len, MAX_LOG_MESSAGE_LENGTH - len, fmt, args);
         va_end(args);
 

@@ -1,6 +1,6 @@
 # syslib
 
-Header-only C++ logging library.
+Header-only C++ logging & IO library.
 
 ## Install
 ```console

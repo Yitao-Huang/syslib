@@ -68,6 +68,10 @@ public:
                 if (offset)
                 {
                     printf("%s", message_buffer);
+                    if (offset + log_message.size() >= BUFFER_SIZE)
+                    {
+                        printf("%s", log_message.c_str());
+                    }
                 }
                 offset = 0;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));

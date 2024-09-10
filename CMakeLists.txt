@@ -35,5 +35,4 @@ add_custom_target(release
     COMMENT "Building with Release configuration"
 )
 
-
 add_executable(main ${SOURCES})

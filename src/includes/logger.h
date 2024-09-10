@@ -115,6 +115,6 @@ static on_demand<async_logger> logger;
 // Macro to log asychronously with severity and formatted message
 #define ASYNCLOG(level, fmt, ...) \
     { \
-        auto logger_ptr = logger.write(); \
+        auto logger_ptr = logger.safe_write(); \
         logger_ptr->log(level, fmt, ##__VA_ARGS__); \
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <mutex>
 
 template <typename T>
 class on_demand
@@ -26,6 +27,19 @@ public:
         return data.get();
     }
 
+    T* safe_read() const
+    {
+        std::unique_lock<std::mutex> ul(this->m);
+        return read();
+    }
+
+    T* safe_write()
+    {
+        std::unique_lock<std::mutex> ul(this->m);
+        return write();
+    }
+
 private:
     std::unique_ptr<T> data;
+    std::mutex m;
 };

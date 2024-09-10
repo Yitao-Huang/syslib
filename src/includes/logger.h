@@ -11,8 +11,8 @@
 #include "thread_pool.h"
 
 #define MAX_LOG_MESSAGE_LENGTH 128
-#define MESSAGE_QUEUE_SIZE 32
-#define BUFFER_SIZE 4096
+#define MESSAGE_QUEUE_SIZE 128
+#define BUFFER_SIZE 8192
 
 // Severity levels
 enum class LogLevel : uint8_t

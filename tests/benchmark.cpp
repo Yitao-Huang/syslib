@@ -2,8 +2,8 @@
 #include <vector>
 #include <chrono>
 
-#define NUM_LOGGING_THREADS 4
-#define LSN 100
+#define NUM_LOGGING_THREADS 128
+#define LSN 10000
 
 void benchmark_sync()
 {
@@ -18,10 +18,10 @@ void benchmark_sync()
         }));
     }
 
-    for (auto& fut : futs)
-    {
-        fut.wait();
-    }
+    // for (auto& fut : futs)
+    // {
+    //     fut.wait();
+    // }
 }
 
 void benchmark_async()
@@ -37,10 +37,10 @@ void benchmark_async()
         }));
     }
 
-    for (auto& fut : futs)
-    {
-        fut.wait();
-    }
+    // for (auto& fut : futs)
+    // {
+    //     fut.wait();
+    // }
 }
 
 int main(int argc, char* argv[])

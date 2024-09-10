@@ -29,17 +29,18 @@ public:
 
     T* safe_read() const
     {
-        std::unique_lock<std::mutex> ul(this->m);
-        return read();
+        return data.get();
     }
 
     T* safe_write()
     {
-        std::unique_lock<std::mutex> ul(this->m);
-        return write();
+        std::call_once(init_flag, [this]() {
+            data.reset(new T());
+        });
+        return data.get();
     }
 
 private:
     std::unique_ptr<T> data;
-    std::mutex m;
+    std::once_flag init_flag;
 };

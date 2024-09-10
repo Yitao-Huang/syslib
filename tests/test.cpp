@@ -1,5 +1,5 @@
-#include "includes/asyncio.h"
-#include "includes/logger.h"
+#include "../src/includes/asyncio.h"
+#include "../src/includes/logger.h"
 
 int main() {
     try 
@@ -14,21 +14,6 @@ int main() {
     {
         LOG(LogLevel::ERROR, "I/O operation failed: %s", ex.what())
     }
-
-    auto res1 = syslib::pool.enqueue([](){
-        for (size_t i = 0; i < 10; i++) {
-            ASYNCLOG(LogLevel::INFO, "Log number #%d", i)
-        }
-    });
-
-    auto res2 = syslib::pool.enqueue([](){
-        for (size_t i = 10; i < 20; i++) {
-            ASYNCLOG(LogLevel::INFO, "Log number #%d", i)
-        }
-    });
-
-    res1.wait();
-    res2.wait();
 
     return 0;
 }

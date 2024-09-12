@@ -67,10 +67,10 @@ public:
                 message_buffer[offset] = '\0';
                 if (offset)
                 {
-                    printf("%s", message_buffer);
+                    fputs(message_buffer, stdout);
                     if (offset + log_message.size() >= BUFFER_SIZE)
                     {
-                        printf("%s", log_message.c_str());
+                        fputs(log_message.c_str(), stdout);
                     }
                 }
                 offset = 0;

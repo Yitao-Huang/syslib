@@ -11,7 +11,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # Define the source files
-file(GLOB SOURCES "src/*.cpp" "src/includes/*.h")
+file(GLOB SOURCES "src/*.h")
 
 # Define a variable for the sources of each target
 set(TEST_SOURCES ${SOURCES} "tests/test.cpp")
@@ -24,7 +24,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 # Function to add executable target with a specific configuration
 function(add_executable_with_config target_name source_files)
     add_executable(${target_name} ${source_files})
-    target_include_directories(${target_name} PRIVATE ${CMAKE_SOURCE_DIR}/src/includes)
+    target_include_directories(${target_name} PRIVATE ${CMAKE_SOURCE_DIR}/src)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(${target_name} PRIVATE ${CMAKE_CXX_FLAGS_DEBUG})
     elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
